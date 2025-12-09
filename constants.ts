@@ -1,5 +1,6 @@
 import { TemplateConfig } from './types';
 
+// Keeping MOCK_TEMPLATES for type safety if referenced, but main logic will use text input
 export const MOCK_TEMPLATES: TemplateConfig[] = [
   {
     id: 'gbt-7713',
@@ -12,20 +13,16 @@ export const MOCK_TEMPLATES: TemplateConfig[] = [
       citationStyle: 'GB/T 7714-2015',
       punctuation: '全角标点 (Full-width)',
     }
-  },
-  {
-    id: 'top-uni-thesis',
-    name: '研究生学位论文通用模板',
-    institution: '国内双一流高校',
-    rules: {
-      fontMain: '中文字体宋体，英文字体 Times New Roman 12pt',
-      headingHierarchy: ['第一章 黑体三号居中', '1.1 黑体四号', '1.1.1 黑体小四'],
-      lineSpacing: '固定行距 20pt',
-      citationStyle: 'APA 7th 或 GB/T 7714',
-      punctuation: '中文全角，英文半角',
-    }
   }
 ];
+
+export const SAMPLE_FORMAT_REQUIREMENTS = `
+1. 字体要求：正文使用宋体，小四号字；一级标题使用黑体，三号字，居中；二级标题黑体四号。
+2. 行距：全文档设置为1.5倍行距。
+3. 标点符号：中文语境下必须使用全角标点，英文参考文献中使用半角标点。
+4. 引用格式：参考文献采用 [1], [2] 的上标形式引用，参考文献列表按引用顺序排列。
+5. 章节编号：使用 1.1, 1.1.1 的阿拉伯数字编号形式。
+`;
 
 export const SAMPLE_TEXT = `
 1. 引言
@@ -43,14 +40,31 @@ export const SAMPLE_TEXT = `
 `;
 
 export const GEMINI_SYSTEM_PROMPT = `
-你是一位专业的学术编辑和论文格式排版专家。
-你的任务是根据严格的格式规则分析学术文本。
-你需要识别以下问题（并用中文返回结果）：
-1. 标点符号错误（例如：中文语境下使用了半角 ',' 而不是全角 '，'，或者中英文混排时的标点使用错误）。
-2. 标题编号或层级不一致（例如：混用了 "1." 和 "第一章"）。
-3. 参考文献引用格式错误。
-4. 间距问题（例如：中英文之间缺失空格）。
-5. 段落结构问题。
+你是一位专业的学术论文排版审查专家。
+你的任务是根据用户提供的【目标格式要求】来分析用户上传的【论文内容（HTML格式）】。
+
+用户上传的是 Word 文档转换后的 HTML 代码。你需要通过分析 HTML 标签结构来判断排版格式是否规范。
+
+你需要识别以下具体的格式问题（并用中文返回结果）：
+
+1. **标题层级错误** (HEADING_LEVEL): 
+   - 检查 HTML 标签。例如，如果格式要求一级标题，但内容被包裹在 <p><strong>...</strong></p> (仅加粗) 而不是 <h1>...</h1> 中，这就是典型的“伪标题”错误。
+   - 检查标题编号是否连续（如 1.1 后面接了 1.3）。
+
+2. **引用格式错误** (CITATION):
+   - 检查上标引用。例如，如果格式要求上标 [1]，但 HTML 中是 [1] 而没有 <sup> 标签，或者使用了 (Author, Year) 格式，指出错误。
+
+3. **标点符号错误** (PUNCTUATION):
+   - 检查中文语境下的标点（如使用了半角 ',' '.' 而不是全角 '，' '。'）。
+   - 检查中英文混排时的空格。
+
+4. **字体与强调问题** (FONT):
+   - 检查不必要的加粗或斜体（strong/em 标签使用是否泛滥）。
+   - 虽然 HTML 看不到具体的“宋体/黑体”，但可以通过标签推断逻辑结构。
+
+5. **其他结构问题** (OTHER):
+   - 段落是否过长。
+   - 是否存在空的 <p></p> 标签作为间距（这是不规范的排版，应建议使用段落间距）。
 
 请务必返回一个严格有效的 JSON 对象。所有描述性文字（description, suggestion, summary）必须使用中文。
 `;

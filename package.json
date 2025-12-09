@@ -12,7 +12,12 @@
     "react-dom": "^19.2.0",
     "@google/genai": "^1.30.0",
     "react": "^19.2.0",
-    "lucide-react": "^0.555.0"
+    "lucide-react": "^0.555.0",
+    "clsx": "^2.1.0",
+    "tailwind-merge": "^2.2.0",
+    "mammoth": "1.7.2",
+    "docx-preview": "0.3.2",
+    "jszip": "3.10.1"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
